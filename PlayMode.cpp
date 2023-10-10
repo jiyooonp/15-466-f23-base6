@@ -22,41 +22,51 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	if (evt.type == SDL_KEYDOWN) {
 		if (evt.key.repeat) {
 			//ignore repeats
-		} else if (evt.key.keysym.sym == SDLK_a) {
+		} else if (evt.key.keysym.sym == SDLK_LEFT) {
 			controls.left.downs += 1;
 			controls.left.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
+		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
 			controls.right.downs += 1;
 			controls.right.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
+		} else if (evt.key.keysym.sym == SDLK_UP) {
 			controls.up.downs += 1;
 			controls.up.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
+		} else if (evt.key.keysym.sym == SDLK_DOWN) {
 			controls.down.downs += 1;
 			controls.down.pressed = true;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_SPACE) {
+		}
+		if (evt.key.keysym.sym == SDLK_SPACE) {
 			controls.jump.downs += 1;
 			controls.jump.pressed = true;
 			return true;
 		}
 	} else if (evt.type == SDL_KEYUP) {
-		if (evt.key.keysym.sym == SDLK_a) {
+		if (evt.key.keysym.sym == SDLK_LEFT)
+		{
 			controls.left.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
+		}
+		else if (evt.key.keysym.sym == SDLK_RIGHT)
+		{
 			controls.right.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
+		}
+		else if (evt.key.keysym.sym == SDLK_UP)
+		{
 			controls.up.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
+		}
+		else if (evt.key.keysym.sym == SDLK_DOWN)
+		{
 			controls.down.pressed = false;
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_SPACE) {
+		}
+		if (evt.key.keysym.sym == SDLK_SPACE)
+		{
 			controls.jump.pressed = false;
 			return true;
 		}
@@ -85,7 +95,7 @@ void PlayMode::update(float elapsed) {
 			std::cout << "[" << c->socket << "] closed (!)" << std::endl;
 			throw std::runtime_error("Lost connection to server!");
 		} else { assert(event == Connection::OnRecv);
-			//std::cout << "[" << c->socket << "] recv'd data. Current buffer:\n" << hex_dump(c->recv_buffer); std::cout.flush(); //DEBUG
+			// std::cout << "[" << c->socket << "] recv'd data. Current buffer:\n" << hex_dump(c->recv_buffer); std::cout.flush(); //DEBUG
 			bool handled_message;
 			try {
 				do {
@@ -103,15 +113,6 @@ void PlayMode::update(float elapsed) {
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
-	static std::array< glm::vec2, 16 > const circle = [](){
-		std::array< glm::vec2, 16 > ret;
-		for (uint32_t a = 0; a < ret.size(); ++a) {
-			float ang = a / float(ret.size()) * 2.0f * float(M_PI);
-			ret[a] = glm::vec2(std::cos(ang), std::sin(ang));
-		}
-		return ret;
-	}();
-
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
@@ -119,10 +120,9 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//figure out view transform to center the arena:
 	float aspect = float(drawable_size.x) / float(drawable_size.y);
 	float scale = std::min(
-		2.0f * aspect / (Game::ArenaMax.x - Game::ArenaMin.x + 2.0f * Game::PlayerRadius),
-		2.0f / (Game::ArenaMax.y - Game::ArenaMin.y + 2.0f * Game::PlayerRadius)
-	);
-	glm::vec2 offset = -0.5f * (Game::ArenaMax + Game::ArenaMin);
+		2.0f * aspect / (Game::ArenaMax[0].x - Game::ArenaMin[0].x + 2.0f * Game::PlayerRadius),
+		2.0f / (Game::ArenaMax[0].y - Game::ArenaMin[0].y + 2.0f * Game::PlayerRadius));
+	glm::vec2 offset = -0.5f * (Game::ArenaMax[0] + Game::ArenaMin[0]);
 
 	glm::mat4 world_to_clip = glm::mat4(
 		scale / aspect, 0.0f, 0.0f, offset.x,
@@ -147,35 +147,42 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		};
 
-		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMin.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMax.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMin.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		lines.draw(glm::vec3(Game::ArenaMax.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		// draws a box around the arena:
+		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMin[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMax[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMin[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMax[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+
+		// draws an area for guesser to be in
+		lines.draw(glm::vec3(Game::ArenaMin[1].x, Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x, Game::ArenaMin[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMin[1].x , Game::ArenaMax[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMin[1].x , Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMin[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::ArenaMax[1].x, Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
 		for (auto const &player : game.players) {
 			glm::u8vec4 col = glm::u8vec4(player.color.x*255, player.color.y*255, player.color.z*255, 0xff);
-			if (&player == &game.players.front()) {
-				//mark current player (which server sends first):
-				lines.draw(
-					glm::vec3(player.position + Game::PlayerRadius * glm::vec2(-0.5f,-0.5f), 0.0f),
-					glm::vec3(player.position + Game::PlayerRadius * glm::vec2( 0.5f, 0.5f), 0.0f),
-					col
-				);
-				lines.draw(
-					glm::vec3(player.position + Game::PlayerRadius * glm::vec2(-0.5f, 0.5f), 0.0f),
-					glm::vec3(player.position + Game::PlayerRadius * glm::vec2( 0.5f,-0.5f), 0.0f),
-					col
-				);
-			}
-			for (uint32_t a = 0; a < circle.size(); ++a) {
-				lines.draw(
-					glm::vec3(player.position + Game::PlayerRadius * circle[a], 0.0f),
-					glm::vec3(player.position + Game::PlayerRadius * circle[(a+1)%circle.size()], 0.0f),
-					col
-				);
+			std::cout << "player.draw: "<<player.draw << std::endl;
+			if (player.name == "Drawer")
+			{
+				// add all the traits of the player 
+				if (player.draw)
+					player_draws.push_back(player.position);
+				for (auto p: player_draws){
+					lines.draw(
+						glm::vec3(p, 0.0f),
+						glm::vec3(p + glm::vec2(0.01f, 0.01f), 0.0f),
+						col);
+				}
+				// for (uint32_t a = 0; a < circle.size(); ++a)
+				// {
+				// 	lines.draw(
+				// 		glm::vec3(player.position + Game::PlayerRadius * circle[a], 0.0f),
+				// 		glm::vec3(player.position + Game::PlayerRadius * circle[(a + 1) % circle.size()], 0.0f),
+				// 		col);
+				// }
 			}
 
-			draw_text(player.position + glm::vec2(0.0f, -0.1f + Game::PlayerRadius), player.name, 0.09f);
+			draw_text(player.position + glm::vec2(0.0f, -0.1f), player.name, 0.09f);
 		}
 	}
 	GL_ERRORS();

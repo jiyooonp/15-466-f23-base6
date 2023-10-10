@@ -78,12 +78,14 @@ Game::Game() : mt(0x15466666) {
 }
 
 Player *Game::spawn_player() {
+	if (players.size() >= 2) throw std::runtime_error("This is a two player game!");
+
+	// if first player 
+
 	players.emplace_back();
 	Player &player = players.back();
 
-	//random point in the middle area of the arena:
-	player.position.x = glm::mix(ArenaMin.x + 2.0f * PlayerRadius, ArenaMax.x - 2.0f * PlayerRadius, 0.4f + 0.2f * mt() / float(mt.max()));
-	player.position.y = glm::mix(ArenaMin.y + 2.0f * PlayerRadius, ArenaMax.y - 2.0f * PlayerRadius, 0.4f + 0.2f * mt() / float(mt.max()));
+
 
 	do {
 		player.color.r = mt() / float(mt.max());
@@ -92,8 +94,17 @@ Player *Game::spawn_player() {
 	} while (player.color == glm::vec3(0.0f));
 	player.color = glm::normalize(player.color);
 
-	player.name = "Player " + std::to_string(next_player_number++);
-
+	if (next_player_number % 2 == 0) // has to be drawer
+	{
+		player.name = "Drawer";
+		// random point in the middle area of the arena:
+		player.position = glm::vec2(0.0f, 0.0f);
+	}
+	else{
+		player.name = "Guesser";
+		player.position = glm::vec2(-1.2f, 0.0f);
+	}
+	next_player_number ++;
 	return &player;
 }
 
@@ -110,6 +121,7 @@ void Game::remove_player(Player *player) {
 }
 
 void Game::update(float elapsed) {
+
 	//position/velocity update:
 	for (auto &p : players) {
 		glm::vec2 dir = glm::vec2(0.0f, 0.0f);
@@ -117,6 +129,12 @@ void Game::update(float elapsed) {
 		if (p.controls.right.pressed) dir.x += 1.0f;
 		if (p.controls.down.pressed) dir.y -= 1.0f;
 		if (p.controls.up.pressed) dir.y += 1.0f;
+
+		if (p.controls.jump.pressed) {
+			p.draw = true;
+			std::cout << "draw pressed!"<<std::endl;
+			}
+		else p.draw = false;
 
 		if (dir == glm::vec2(0.0f)) {
 			//no inputs: just drift to a stop
@@ -152,35 +170,27 @@ void Game::update(float elapsed) {
 
 	//collision resolution:
 	for (auto &p1 : players) {
-		//player/player collisions:
-		for (auto &p2 : players) {
-			if (&p1 == &p2) break;
-			glm::vec2 p12 = p2.position - p1.position;
-			float len2 = glm::length2(p12);
-			if (len2 > (2.0f * PlayerRadius) * (2.0f * PlayerRadius)) continue;
-			if (len2 == 0.0f) continue;
-			glm::vec2 dir = p12 / std::sqrt(len2);
-			//mirror velocity to be in separating direction:
-			glm::vec2 v12 = p2.velocity - p1.velocity;
-			glm::vec2 delta_v12 = dir * glm::max(0.0f, -1.75f * glm::dot(dir, v12));
-			p2.velocity += 0.5f * delta_v12;
-			p1.velocity -= 0.5f * delta_v12;
-		}
 		//player/arena collisions:
-		if (p1.position.x < ArenaMin.x + PlayerRadius) {
-			p1.position.x = ArenaMin.x + PlayerRadius;
+		int player_int = (p1.name == "Drawer") ? 0 : 1;
+
+		if (p1.position.x < ArenaMin[player_int].x)
+		{
+			p1.position.x = ArenaMin[player_int].x;
 			p1.velocity.x = std::abs(p1.velocity.x);
 		}
-		if (p1.position.x > ArenaMax.x - PlayerRadius) {
-			p1.position.x = ArenaMax.x - PlayerRadius;
+		if (p1.position.x > ArenaMax[player_int].x)
+		{
+			p1.position.x = ArenaMax[player_int].x;
 			p1.velocity.x =-std::abs(p1.velocity.x);
 		}
-		if (p1.position.y < ArenaMin.y + PlayerRadius) {
-			p1.position.y = ArenaMin.y + PlayerRadius;
+		if (p1.position.y < ArenaMin[player_int].y)
+		{
+			p1.position.y = ArenaMin[player_int].y;
 			p1.velocity.y = std::abs(p1.velocity.y);
 		}
-		if (p1.position.y > ArenaMax.y - PlayerRadius) {
-			p1.position.y = ArenaMax.y - PlayerRadius;
+		if (p1.position.y > ArenaMax[player_int].y)
+		{
+			p1.position.y = ArenaMax[player_int].y;
 			p1.velocity.y =-std::abs(p1.velocity.y);
 		}
 	}

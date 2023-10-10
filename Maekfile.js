@@ -172,17 +172,27 @@ const show_scene_names = [
 	maek.CPP('ShowSceneMode.cpp')
 ];
 
+const maze_name = [
+	maek.CPP('in_class.cpp'),
+];
+const maze_s_name = [
+	maek.CPP('in_class_seeker.cpp'),
+];
+
+
 //the '[exeFile =] LINK(objFiles, exeFileBase, [, options])' links an array of objects into an executable:
 // objFiles: array of objects to link
 // exeFileBase: name of executable file to produce
 //returns exeFile: exeFileBase + a platform-dependant suffix (e.g., '.exe' on windows)
 const client_exe = maek.LINK([...client_names, ...common_names], 'dist/client');
+const maze_exe = maek.LINK([...maze_name, ...common_names], 'dist/maze');
+const maze_s_exe = maek.LINK([...maze_s_name, ...common_names], 'dist/maze_s');
 const server_exe = maek.LINK([...server_names, ...common_names], 'dist/server');
 const show_meshes_exe = maek.LINK([...show_meshes_names, ...common_names], 'scenes/show-meshes');
 const show_scene_exe = maek.LINK([...show_scene_names, ...common_names], 'scenes/show-scene');
 
 //set the default target to the game (and copy the readme files):
-maek.TARGETS = [client_exe, server_exe, show_meshes_exe, show_scene_exe, ...copies];
+maek.TARGETS = [maze_s_exe, maze_exe, client_exe, server_exe, show_meshes_exe, show_scene_exe, ...copies];
 
 //Note that tasks that produce ':abstract targets' are never cached.
 // This is similar to how .PHONY targets behave in make.

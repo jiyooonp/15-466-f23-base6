@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <random>
+#include <array>
 
 struct Connection;
 
@@ -41,6 +42,7 @@ struct Player {
 	//player state (sent from server):
 	glm::vec2 position = glm::vec2(0.0f, 0.0f);
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
+	bool draw = false;
 
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 	std::string name = "";
@@ -52,7 +54,7 @@ struct Game {
 	void remove_player(Player *); //remove player from game (may also, e.g., play some despawn anim)
 
 	std::mt19937 mt; //used for spawning players
-	uint32_t next_player_number = 1; //used for naming players
+	uint32_t next_player_number = 0; //used for naming players
 
 	Game();
 
@@ -64,12 +66,15 @@ struct Game {
 	inline static constexpr float Tick = 1.0f / 30.0f;
 
 	//arena size:
-	inline static constexpr glm::vec2 ArenaMin = glm::vec2(-0.75f, -1.0f);
-	inline static constexpr glm::vec2 ArenaMax = glm::vec2( 0.75f,  1.0f);
+	inline static constexpr std::array<glm::vec2, 2> ArenaMin = {
+		glm::vec2(-1.0f, -1.0f), glm::vec2(-1.3f, -1.0f)};
+	inline static constexpr std::array<glm::vec2, 2> ArenaMax = {
+		glm::vec2(1.0f, 1.0f),
+		glm::vec2(-1.1f, 1.0f)};
 
 	//player constants:
 	inline static constexpr float PlayerRadius = 0.06f;
-	inline static constexpr float PlayerSpeed = 2.0f;
+	inline static constexpr float PlayerSpeed = 1.0f;
 	inline static constexpr float PlayerAccelHalflife = 0.25f;
 	
 

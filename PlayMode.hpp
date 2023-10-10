@@ -31,4 +31,13 @@ struct PlayMode : Mode {
 	//connection to server:
 	Client &client;
 
+	// draw lines for player_draw
+	std::vector< glm::vec2 > player_draws;
+
+
+	// word list
+	std::vector<std::string> words = {
+		"apple","bicycle","mountain","guitar","elephant","computer","butterfly","umbrella","penguin","banana","glasses","pyramid","mushroom","kangaroo","lighthouse","robot","spaghetti","volcano","pineapple","helicopter","octopus","lipstick","skyscraper","cactus","zeppelin","yacht","jigsaw","koala","necktie","waterfall","quill","donut","violin","rhinoceros","igloo","puzzle","flamingo","xylophone","chameleon","accordion",
+		"balloon","grapes","hedgehog","island","lamp","telescope",	"mailbox","onion","unicorn","chocolate","rocket","squirrel","turtle","kiwi","yo-yo","zucchini","vampire","rainbow","fountain"
+	};
 };

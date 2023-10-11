@@ -49,8 +49,19 @@ struct Player {
 	std::string name = "";
 };
 
+// state of one player in the game:
+struct GameState
+{
+	// player state (sent from server):
+	glm::vec4 game_info = glm::vec4(0, 0, 0, 0);
+	int game_level = 0;
+};
+
 struct Game {
-	std::list< Player > players; //(using list so they can have stable addresses)
+
+	GameState game_state;
+
+	std::list<Player> players;		//(using list so they can have stable addresses)
 	Player *spawn_player(); //add player the end of the players list (may also, e.g., play some spawn anim)
 	void remove_player(Player *); //remove player from game (may also, e.g., play some despawn anim)
 
@@ -90,10 +101,13 @@ struct Game {
 	//send game state.
 	//  Will move "connection_player" to the front of the front of the sent list.
 	void send_state_message(Connection *connection, Player *connection_player = nullptr) const;
+
+	bool recv_game_state_message(Connection *connection);
+	void send_game_state_message(Connection *connection, GameState *connection_player = nullptr) const;
 	void new_level();
 
-		// for game logic
-		int score = 0;
+	// for game logic
+	int score = 0;
 	int level = 1;
 	
 	int target_word_index = 0;

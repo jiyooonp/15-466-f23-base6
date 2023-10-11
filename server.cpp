@@ -111,8 +111,8 @@ int main(int argc, char **argv) {
 		//send updated game state to all clients
 		for (auto &[c, player] : connection_to_player) {
 			game.send_state_message(c, player);
+			game.send_game_state_message(c, &game.game_state);
 		}
-
 	}
 
 

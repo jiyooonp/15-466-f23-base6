@@ -114,6 +114,7 @@ Player *Game::spawn_player() {
 	return &player;
 }
 void Game::new_level(){
+	level += 1;
 	// select words of interest
 	word_candidate_indeces.clear();
 	for (int i = 0; i < 3; i++)
@@ -123,8 +124,15 @@ void Game::new_level(){
 			word_candidate_indeces.push_back(selected);
 	}
 	std::cout << "word candidates: " << word_list[word_candidate_indeces[0]] << ", " << word_list[word_candidate_indeces[1]] << ", " << word_list[word_candidate_indeces[2]] << std::endl;
-	target_word_index = word_candidate_indeces[mt() % 3];
-	std::cout << "target word: " << word_list[target_word_index] << std::endl;
+	target_word_index = mt() % 3;
+	std::cout << "target word: " << word_list[word_candidate_indeces[target_word_index]] << std::endl;
+
+	// put the things in game_state
+	game_state.game_info[0] = word_candidate_indeces[0];
+	game_state.game_info[1] = word_candidate_indeces[1];
+	game_state.game_info[2] = word_candidate_indeces[2];
+	game_state.game_info[3] = target_word_index;
+	game_state.game_level = level;
 }
 
 void Game::remove_player(Player *player) {
@@ -159,12 +167,18 @@ void Game::update(float elapsed) {
 
 		// if the gusser guessed something
 		if (p.name == "Guesser" && p.controls.guess.downs >0){
-			std::cout << "Player guessed: " << std::to_string(p.controls.guess.downs)<< std::endl;
-			if (p.controls.guess.downs == target_word_index){
+			std::cout << "Player guessed: " << word_list[word_candidate_indeces[p.controls.guess.downs]] << std::endl;
+			if (p.controls.guess.downs == target_word_index + 1){
 				// guesser guessed correctly
 				std::cout << "Guesser guessed correctly!" << std::endl;
-				new_level();
+				score += 1;
 			}
+			else{
+				// guesser guessed incorrectly
+				std::cout << "Guesser guessed incorrectly!" << std::endl;
+				score -= 1;
+			}
+			new_level();
 		}
 
 		if (dir == glm::vec2(0.0f)) {
@@ -240,10 +254,6 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 	for (int i=0; i<arg_len; ++i){
 		connection.send(uint8_t(0));
 	}
-	// connection.send(uint8_t(0));
-	// connection.send(uint8_t(0));
-	// connection.send(uint8_t(0));
-	// connection.send(uint8_t(0));
 	size_t mark = connection.send_buffer.size(); //keep track of this position in the buffer
 
 
@@ -271,10 +281,6 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 
 	//compute the message size and patch into the message header:
 	uint32_t size = uint32_t(connection.send_buffer.size() - mark);
-	// connection.send_buffer[mark - 4] = uint8_t(size);
-	// connection.send_buffer[mark - 3] = uint8_t(size >> 8);
-	// connection.send_buffer[mark - 2] = uint8_t(size >> 16);
-	// connection.send_buffer[mark - 1] = uint8_t(size >> 24);
 
 	for (int i = arg_len; i > 0; i--)
 	{
@@ -333,6 +339,87 @@ bool Game::recv_state_message(Connection *connection_) {
 	if (at != size) throw std::runtime_error("Trailing data in state message.");
 
 	//delete message from buffer:
+	recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + arg_len + size);
+
+	return true;
+}
+
+void Game::send_game_state_message(Connection *connection_, GameState *connection_game_state) const
+{
+	int arg_len = 2;
+	assert(connection_);
+	auto &connection = *connection_;
+
+	connection.send(Message::S2C_State);
+	// will patch message size in later, for now placeholder bytes:
+	for (int i = 0; i < arg_len; ++i)
+	{
+		connection.send(uint8_t(0));
+	}
+	size_t mark = connection.send_buffer.size(); // keep track of this position in the buffer
+
+	// send player info helper:
+	auto send_game_state = [&](GameState const &game_state)
+	{
+		connection.send(game_state.game_info);
+		connection.send(game_state.game_level);
+	};
+
+	// player count:
+	connection.send(uint8_t(sizeof(game_state)));
+	if (connection_game_state)
+		send_game_state(*connection_game_state);
+	// if (&player == connection_player)
+	// 	continue;
+	// send_player(player);
+
+	// compute the message size and patch into the message header:
+	uint32_t size = uint32_t(connection.send_buffer.size() - mark);
+
+	for (int i = arg_len; i > 0; i--)
+	{
+		connection.send_buffer[mark - i] = uint8_t(size >> (8 * (arg_len - i)));
+	}
+}
+
+bool Game::recv_game_state_message(Connection *connection_)
+{
+	long unsigned int arg_len = 2 + 1;
+	assert(connection_);
+	auto &connection = *connection_;
+	auto &recv_buffer = connection.recv_buffer;
+
+	if (recv_buffer.size() < arg_len)
+		return false;
+	if (recv_buffer[0] != uint8_t(Message::S2C_State))
+		return false;
+	uint32_t size = uint32_t(recv_buffer[1]);
+	uint32_t at = 0;
+	// expecting complete message:
+	if (recv_buffer.size() < arg_len + size)
+		return false;
+
+	// copy bytes from buffer and advance position:
+	auto read = [&](auto *val)
+	{
+		if (at + sizeof(*val) > size)
+		{
+			throw std::runtime_error("Ran out of bytes reading state message.");
+		}
+		std::memcpy(val, &recv_buffer[arg_len + at], sizeof(*val));
+		at += sizeof(*val);
+	};
+
+	uint8_t player_count;
+	read(&player_count);
+
+	read(&game_state.game_info);
+	read(&game_state.game_level);
+
+	if (at != size)
+		throw std::runtime_error("Trailing data in state message.");
+
+	// delete message from buffer:
 	recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + arg_len + size);
 
 	return true;

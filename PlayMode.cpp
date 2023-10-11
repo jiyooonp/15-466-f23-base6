@@ -54,7 +54,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 		else if (evt.key.keysym.sym == SDLK_1){
 			controls.guess.downs = 1;
-			std::cout << "pressed 1" << std::endl;
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_2){
@@ -150,7 +149,10 @@ void PlayMode::update(float elapsed)
 			try {
 				do {
 					handled_message = false;
-					if (game.recv_state_message(c)) handled_message = true;
+					if (game.recv_state_message(c))
+						handled_message = true;
+					if (game.recv_game_state_message(c))
+						handled_message = true;
 				} while (handled_message);
 			} catch (std::exception const &e) {
 				std::cerr << "[" << c->socket << "] malformed message from server: " << e.what() << std::endl;
@@ -163,8 +165,16 @@ void PlayMode::update(float elapsed)
 	
 	if (game.players.size() > 0)
 	{
-		std::cout << "guess: " << std::to_string(game.players.back().controls.guess.downs) << std::endl;
-		std::cout << "down: " << std::to_string(game.players.back().controls.down.downs) << std::endl;
+		// std::cout << "+" << 
+		// std::to_string(int(game.game_state.game_info.x)) << " " << 
+		// std::to_string(int(game.game_state.game_info.y)) << " " << 
+		// std::to_string(int(game.game_state.game_info.z)) << " " <<
+		// std::to_string(int(game.game_state.game_info.w)) << std::endl;
+		if (level != int(game.game_state.game_info.w))
+		{
+			level = int(game.game_state.game_info.w);
+			player_draws.clear();
+		}
 	}
 }
 
@@ -212,11 +222,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMin[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 		lines.draw(glm::vec3(Game::ArenaMax[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
-		// draws an area for guesser to be in
-		// lines.draw(glm::vec3(Game::ArenaMin[1].x, Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x, Game::ArenaMin[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		// lines.draw(glm::vec3(Game::ArenaMin[1].x , Game::ArenaMax[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		// lines.draw(glm::vec3(Game::ArenaMin[1].x , Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMin[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
-		// lines.draw(glm::vec3(Game::ArenaMax[1].x, Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
 		for (auto const &player : game.players)
 		{
@@ -233,16 +238,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 						glm::vec3(p + glm::vec2(0.01f, 0.01f), 0.0f),
 						col);
 				}
+				draw_text(player.position + glm::vec2(0.0f, -0.1f), "x", 0.09f);
+				draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 1.0f), word_list[game.game_state.game_info[game.game_state.game_info.w]], 0.09f);
+			}
+			else{
+				// draw the text for the guesser
+				for (int i = 0; i < 3; i++)
+				{
+					std::string resultString = std::to_string(i + 1) + ". " + game.word_list[game.game_state.game_info[i]];
+					draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * (i + 1)), resultString, 0.09f);
+				}
 			}
 
-			draw_text(player.position + glm::vec2(0.0f, -0.1f), player.name, 0.09f);
-
-			// draw the text for the guesser
-			for (int i=0; i<3; i++)
-			{
-				std::string resultString = std::to_string(i+1) + ". " + game.word_list[game.word_candidate_indeces[i]];
-				draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * (i+1)), resultString, 0.09f);
-			}
+			// draw the score to the screen
+			std::string scoreString = "Score: " + std::to_string(int(game.game_state.game_level));
+			draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * 4), scoreString, 0.09f);
 		}
 	}
 	GL_ERRORS();

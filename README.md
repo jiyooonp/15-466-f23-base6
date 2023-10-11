@@ -20,9 +20,11 @@ This game was built with [NEST](NEST.md).
 
 ## TODOs
 
-[ ] guesser location separation
-[ ] guesser movement, input 
-[ ] score board
-[ ] clear the drawer's list after level resets
-[ ] display text
-[ ] send over the chosen words over network 
+[x] guesser location separation
+[x] guesser movement, input 
+[x] score board
+[x] clear the drawer's list after level resets
+[x] display text
+[x] send over the chosen words over network 
+[ ] even if it is wrong, the score goes up
+[ ] why does it overlay words?

@@ -224,6 +224,7 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 	connection.send(uint8_t(0));
 	connection.send(uint8_t(0));
 	connection.send(uint8_t(0));
+	connection.send(uint8_t(0));
 	size_t mark = connection.send_buffer.size(); //keep track of this position in the buffer
 
 
@@ -232,7 +233,8 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 		connection.send(player.position);
 		connection.send(player.velocity);
 		connection.send(player.color);
-	
+		connection.send(player.pressed_draw);
+
 		//NOTE: can't just 'send(name)' because player.name is not plain-old-data type.
 		//effectively: truncates player name to 255 chars
 		uint8_t len = uint8_t(std::min< size_t >(255, player.name.size()));
@@ -250,9 +252,10 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 
 	//compute the message size and patch into the message header:
 	uint32_t size = uint32_t(connection.send_buffer.size() - mark);
-	connection.send_buffer[mark-3] = uint8_t(size);
-	connection.send_buffer[mark-2] = uint8_t(size >> 8);
-	connection.send_buffer[mark-1] = uint8_t(size >> 16);
+	connection.send_buffer[mark - 4] = uint8_t(size);
+	connection.send_buffer[mark - 3] = uint8_t(size >> 8);
+	connection.send_buffer[mark - 2] = uint8_t(size >> 16);
+	connection.send_buffer[mark - 1] = uint8_t(size >> 24);
 }
 
 bool Game::recv_state_message(Connection *connection_) {
@@ -260,21 +263,22 @@ bool Game::recv_state_message(Connection *connection_) {
 	auto &connection = *connection_;
 	auto &recv_buffer = connection.recv_buffer;
 
-	if (recv_buffer.size() < 4) return false;
+	if (recv_buffer.size() <5) return false;
 	if (recv_buffer[0] != uint8_t(Message::S2C_State)) return false;
-	uint32_t size = (uint32_t(recv_buffer[3]) << 16)
+	uint32_t size = (uint32_t(recv_buffer[4]) << 24)
+				  | (uint32_t(recv_buffer[3]) << 16)
 	              | (uint32_t(recv_buffer[2]) << 8)
 	              |  uint32_t(recv_buffer[1]);
 	uint32_t at = 0;
 	//expecting complete message:
-	if (recv_buffer.size() < 4 + size) return false;
+	if (recv_buffer.size() < 5 + size) return false;
 
 	//copy bytes from buffer and advance position:
 	auto read = [&](auto *val) {
 		if (at + sizeof(*val) > size) {
 			throw std::runtime_error("Ran out of bytes reading state message.");
 		}
-		std::memcpy(val, &recv_buffer[4 + at], sizeof(*val));
+		std::memcpy(val, &recv_buffer[5 + at], sizeof(*val));
 		at += sizeof(*val);
 	};
 
@@ -287,6 +291,7 @@ bool Game::recv_state_message(Connection *connection_) {
 		read(&player.position);
 		read(&player.velocity);
 		read(&player.color);
+		read(&player.pressed_draw);
 		uint8_t name_len;
 		read(&name_len);
 		//n.b. would probably be more efficient to directly copy from recv_buffer, but I think this is clearer:
@@ -301,7 +306,7 @@ bool Game::recv_state_message(Connection *connection_) {
 	if (at != size) throw std::runtime_error("Trailing data in state message.");
 
 	//delete message from buffer:
-	recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + 4 + size);
+	recv_buffer.erase(recv_buffer.begin(), recv_buffer.begin() + 5 + size);
 
 	return true;
 }

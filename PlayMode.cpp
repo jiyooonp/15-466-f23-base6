@@ -160,9 +160,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		lines.draw(glm::vec3(Game::ArenaMax[1].x, Game::ArenaMin[1].y, 0.0f), glm::vec3(Game::ArenaMax[1].x , Game::ArenaMax[1].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
 		for (auto const &player : game.players) {
-			glm::u8vec4 col = glm::u8vec4(player.color.x*255, player.color.y*255, player.color.z*255, 0xff);
-			// std::cout << "player.pressed_draw: "<<player.pressed_draw << std::endl;
-			std::cout << "player.jump: " << player.controls.jump.pressed << std::endl;
+			glm::u8vec4 col = glm::u8vec4(255, 0x00, 0x00, 0xff);
 			if (player.name == "Drawer")
 			{
 				// add all the traits of the player
@@ -174,13 +172,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 						glm::vec3(p + glm::vec2(0.01f, 0.01f), 0.0f),
 						col);
 				}
-				// for (uint32_t a = 0; a < circle.size(); ++a)
-				// {
-				// 	lines.draw(
-				// 		glm::vec3(player.position + Game::PlayerRadius * circle[a], 0.0f),
-				// 		glm::vec3(player.position + Game::PlayerRadius * circle[(a + 1) % circle.size()], 0.0f),
-				// 		col);
-				// }
 			}
 
 			draw_text(player.position + glm::vec2(0.0f, -0.1f), player.name, 0.09f);

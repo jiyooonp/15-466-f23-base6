@@ -161,11 +161,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 		for (auto const &player : game.players) {
 			glm::u8vec4 col = glm::u8vec4(player.color.x*255, player.color.y*255, player.color.z*255, 0xff);
-			std::cout << "player.draw: "<<player.draw << std::endl;
+			// std::cout << "player.pressed_draw: "<<player.pressed_draw << std::endl;
+			std::cout << "player.jump: " << player.controls.jump.pressed << std::endl;
 			if (player.name == "Drawer")
 			{
-				// add all the traits of the player 
-				if (player.draw)
+				// add all the traits of the player
+				if (player.pressed_draw == 1)
 					player_draws.push_back(player.position);
 				for (auto p: player_draws){
 					lines.draw(

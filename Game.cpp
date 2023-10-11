@@ -105,7 +105,22 @@ Player *Game::spawn_player() {
 		player.position = glm::vec2(-1.2f, 0.0f);
 	}
 	next_player_number ++;
+
+	new_level();
 	return &player;
+}
+void Game::new_level(){
+	// select words of interest
+	word_candidate_indeces.clear();
+	for (int i = 0; i < 3; i++)
+	{
+		int selected = mt() % word_list.size();
+		if (std::find(word_candidate_indeces.begin(), word_candidate_indeces.end(), selected) == word_candidate_indeces.end())
+			word_candidate_indeces.push_back(selected);
+	}
+	std::cout << "word candidates: " << word_list[word_candidate_indeces[0]] << ", " << word_list[word_candidate_indeces[1]] << ", " << word_list[word_candidate_indeces[2]] << std::endl;
+	target_word_index = word_candidate_indeces[mt() % 3];
+	std::cout << "target word: " << word_list[target_word_index] << std::endl;
 }
 
 void Game::remove_player(Player *player) {
@@ -131,10 +146,12 @@ void Game::update(float elapsed) {
 		if (p.controls.up.pressed) dir.y += 1.0f;
 
 		if (p.controls.jump.pressed) {
-			p.draw = true;
+			p.pressed_draw = 1;
 			std::cout << "draw pressed!"<<std::endl;
+			std::cout <<  "p.pressed_draw: " << p.pressed_draw << std::endl;
 			}
-		else p.draw = false;
+		else
+			p.pressed_draw = false;
 
 		if (dir == glm::vec2(0.0f)) {
 			//no inputs: just drift to a stop

@@ -42,7 +42,7 @@ struct Player {
 	//player state (sent from server):
 	glm::vec2 position = glm::vec2(0.0f, 0.0f);
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
-	bool draw = false;
+	int pressed_draw = 0;
 
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 	std::string name = "";
@@ -89,4 +89,17 @@ struct Game {
 	//send game state.
 	//  Will move "connection_player" to the front of the front of the sent list.
 	void send_state_message(Connection *connection, Player *connection_player = nullptr) const;
+	void new_level();
+
+		// for game logic
+		int score = 0;
+	int level = 1;
+	
+	int target_word_index = 0;
+	std::vector<int> word_candidate_indeces;
+
+	// word list
+	std::vector<std::string> word_list = {
+		"apple", "bicycle", "mountain", "guitar", "elephant", "computer", "butterfly", "umbrella", "penguin", "banana", "glasses", "pyramid", "mushroom", "kangaroo", "lighthouse", "robot", "spaghetti", "volcano", "pineapple", "helicopter", "octopus", "lipstick", "skyscraper", "cactus", "zeppelin", "yacht", "jigsaw", "koala", "necktie", "waterfall", "quill", "donut", "violin", "rhinoceros", "igloo", "puzzle", "flamingo", "xylophone", "chameleon", "accordion",
+		"balloon", "grapes", "hedgehog", "island", "lamp", "telescope", "mailbox", "onion", "unicorn", "chocolate", "rocket", "squirrel", "turtle", "kiwi", "yo-yo", "zucchini", "vampire", "rainbow", "fountain"};
 };

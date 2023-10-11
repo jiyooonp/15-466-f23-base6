@@ -29,7 +29,7 @@ struct Button {
 struct Player {
 	//player inputs (sent from client):
 	struct Controls {
-		Button left, right, up, down, jump;
+		Button left, right, up, down, jump, guess;
 
 		void send_controls_message(Connection *connection) const;
 
@@ -43,6 +43,7 @@ struct Player {
 	glm::vec2 position = glm::vec2(0.0f, 0.0f);
 	glm::vec2 velocity = glm::vec2(0.0f, 0.0f);
 	int pressed_draw = 0;
+	glm::vec4 game_info = glm::vec4(0, 0, 0, 1);
 
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 	std::string name = "";
@@ -96,7 +97,7 @@ struct Game {
 	int level = 1;
 	
 	int target_word_index = 0;
-	std::vector<int> word_candidate_indeces;
+	std::vector<int> word_candidate_indeces = {0, 1, 2};
 
 	// word list
 	std::vector<std::string> word_list = {

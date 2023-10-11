@@ -18,3 +18,11 @@ Sources: (TODO: list a source URL for any assets you did not create yourself. Ma
 
 This game was built with [NEST](NEST.md).
 
+## TODOs
+
+[ ] guesser location separation
+[ ] guesser movement, input 
+[ ] score board
+[ ] clear the drawer's list after level resets
+[ ] display text
+[ ] send over the chosen words over network 

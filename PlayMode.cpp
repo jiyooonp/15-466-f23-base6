@@ -64,13 +64,19 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			controls.guess.downs = 3;
 			return true;
 		}
+		else if (evt.key.keysym.sym == SDLK_r)
+		{
+			// reset the game
+			controls.guess.downs = 4;
+			return true;
+		}
 
 		if (evt.key.keysym.sym == SDLK_SPACE)
-			{
-				controls.jump.downs += 1;
-				controls.jump.pressed = true;
-				return true;
-			}
+		{
+			controls.jump.downs += 1;
+			controls.jump.pressed = true;
+			return true;
+		}
 		
 	}
 	else if (evt.type == SDL_KEYUP)
@@ -95,21 +101,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			controls.down.pressed = false;
 			return true;
 		}
-		// else if (evt.key.keysym.sym == SDLK_1)
-		// {
-		// 	controls.guess.downs = 0;
-		// 	return true;
-		// }
-		// else if (evt.key.keysym.sym == SDLK_2)
-		// {
-		// 	controls.guess.downs = 0;
-		// 	return true;
-		// }
-		// else if (evt.key.keysym.sym == SDLK_3)
-		// {
-		// 	controls.guess.downs = 0;
-		// 	return true;
-		// }
 
 		if (evt.key.keysym.sym == SDLK_SPACE)
 		{
@@ -161,20 +152,13 @@ void PlayMode::update(float elapsed)
 			}
 		} },
 	0.0);
-	// std::cout << "Game index: " << game.word_list[game.target_word_index] << std::endl;
 	
 	if (game.players.size() > 0)
 	{
-		// std::cout << "+" << 
-		// std::to_string(int(game.game_state.game_info.x)) << " " << 
-		// std::to_string(int(game.game_state.game_info.y)) << " " << 
-		// std::to_string(int(game.game_state.game_info.z)) << " " <<
-		// std::to_string(int(game.game_state.game_info.w)) << std::endl;
 		if (score != int(game.game_state.game_score))
 		{
 			score = int(game.game_state.game_score);
 			player_draws.clear();
-			std::cout << "Your word is: " << word_list[game.game_state.game_info[game.game_state.game_info.w]] << std::endl;
 		}
 	}
 }
@@ -201,6 +185,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 
+
 	{
 		DrawLines lines(world_to_clip);
 
@@ -217,6 +202,13 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 							glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 							glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		};
+		if (score < 0)
+		{
+			// draw the score to the screen
+			std::string scoreString = "Final Score: " + std::to_string(int(game.game_state.game_score)) + ". Press \"r\" to restart!";
+			draw_text(glm::vec2(-0.5f, 0.0f), scoreString, 0.09f);
+			return;
+		}
 
 		// draws a box around the arena:
 		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMin[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));

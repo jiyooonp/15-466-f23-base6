@@ -34,10 +34,19 @@ struct PlayMode : Mode {
 	// draw lines for player_draw
 	std::vector< glm::vec2 > player_draws;
 
-	int level = 0;
 	int score = 0;
 	// word list
 	std::vector<std::string> word_list = {
-		"apple", "bicycle", "mountain", "guitar", "elephant", "computer", "butterfly", "umbrella", "penguin", "banana", "glasses", "pyramid", "mushroom", "kangaroo", "lighthouse", "robot", "spaghetti", "volcano", "pineapple", "helicopter", "octopus", "lipstick", "skyscraper", "cactus", "zeppelin", "yacht", "jigsaw", "koala", "necktie", "waterfall", "quill", "donut", "violin", "rhinoceros", "igloo", "puzzle", "flamingo", "xylophone", "chameleon", "accordion",
-		"balloon", "grapes", "hedgehog", "island", "lamp", "telescope", "mailbox", "onion", "unicorn", "chocolate", "rocket", "squirrel", "turtle", "kiwi", "yo-yo", "zucchini", "vampire", "rainbow", "fountain"};
+		"apple", "banana", "tree", "book", "star",
+		"circle", "square", "heart", "car", "sun",
+		"moon", "cat", "dog", "boat", "flower",
+		"hat", "door", "cloud", "fish", "bird",
+		"bottle", "pen", "glasses", "shoe", "umbrella",
+		"grape", "leaf", "pizza", "cake", "mountain",
+		"ring", "chair", "table", "ball", "kite",
+		"ice cream", "spoon", "fork", "toothbrush", "key",
+		"house", "ladder", "rainbow", "pants", "shirt",
+		"sock", "butterfly", "egg", "bell", "bridge",
+		"light bulb", "mug", "pillow", "envelope", "flag",
+		"drum", "pencil", "tooth", "hand", "smile"};
 };

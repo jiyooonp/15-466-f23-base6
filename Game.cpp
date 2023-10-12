@@ -83,8 +83,10 @@ Game::Game() : mt(0x15466666) {
 
 Player *Game::spawn_player() {
 	if (players.size() >= 2) throw std::runtime_error("This is a two player game!");
+	if (next_player_number == 2)
+		throw std::runtime_error("Sorry, your partner left the game. You can't play the same game without your partner :(");
 
-	// if first player 
+		// if first player
 
 	players.emplace_back();
 	Player &player = players.back();
@@ -103,12 +105,10 @@ Player *Game::spawn_player() {
 		player.name = "Drawer";
 		// random point in the middle area of the arena:
 		player.position = glm::vec2(0.0f, 0.0f);
-		std::cout << "drawer generated" << std::endl;
 	}
 	else{
 		player.name = "Guesser";
 		player.position = glm::vec2(-1.2f, 0.0f);
-		std::cout << "Guesser generated" << std::endl;
 	}
 	next_player_number ++;
 
@@ -125,9 +125,7 @@ void Game::new_level(){
 		if (std::find(word_candidate_indeces.begin(), word_candidate_indeces.end(), selected) == word_candidate_indeces.end())
 			word_candidate_indeces.push_back(selected);
 	}
-	// std::cout << "word candidates: " << word_list[word_candidate_indeces[0]] << ", " << word_list[word_candidate_indeces[1]] << ", " << word_list[word_candidate_indeces[2]] << std::endl;
 	target_word_index = mt() % 3;
-	// std::cout << "target word: " << word_list[word_candidate_indeces[target_word_index]] << std::endl;
 
 	// put the things in game_state
 	game_state.game_info[0] = word_candidate_indeces[0];
@@ -161,24 +159,28 @@ void Game::update(float elapsed) {
 
 		if (p.controls.jump.pressed) {
 			p.pressed_draw = 1;
-			// std::cout << "draw pressed!"<<std::endl;
-			// std::cout <<  "p.pressed_draw: " << p.pressed_draw << std::endl;
 			}
 		else
 			p.pressed_draw = false;
 
 		// if the gusser guessed something
 		if (p.name == "Guesser" && p.controls.guess.downs >0){
-			// std::cout << "Player guessed: " << word_list[word_candidate_indeces[p.controls.guess.downs]] << std::endl;
-			if (p.controls.guess.downs == target_word_index + 1){
+			if (p.controls.guess.downs == target_word_index + 1 && score > -1)
+			{
 				// guesser guessed correctly
-				// std::cout << "Guesser guessed correctly!" << std::endl;
 				score += 1;
+			}
+			else if (p.controls.guess.downs == 4 && score == -1)
+			{
+				// reset the game
+				std::cout << "resetting the game" << std::endl;
+				game_state.game_score = 0;
+				score = 0;
 			}
 			else{
 				// guesser guessed incorrectly
-				// std::cout << "Guesser guessed incorrectly!" << std::endl;
-				score -= 1;
+				if (score > -1)
+					score -= 1;
 			}
 			new_level();
 		}
@@ -367,13 +369,9 @@ void Game::send_game_state_message(Connection *connection_, GameState *connectio
 		connection.send(game_state.game_score);
 	};
 
-	// player count:
 	connection.send(uint8_t(sizeof(game_state)));
 	if (connection_game_state)
 		send_game_state(*connection_game_state);
-	// if (&player == connection_player)
-	// 	continue;
-	// send_player(player);
 
 	// compute the message size and patch into the message header:
 	uint32_t size = uint32_t(connection.send_buffer.size() - mark);

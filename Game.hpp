@@ -53,8 +53,8 @@ struct Player {
 struct GameState
 {
 	// player state (sent from server):
-	glm::vec4 game_info = glm::vec4(0, 0, 0, 0);
-	int game_level = 0;
+	glm::vec4 game_info = glm::vec4(0, 0, 0, -1);
+	int game_score = 0;
 };
 
 struct Game {

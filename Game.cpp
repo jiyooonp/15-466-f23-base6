@@ -103,10 +103,12 @@ Player *Game::spawn_player() {
 		player.name = "Drawer";
 		// random point in the middle area of the arena:
 		player.position = glm::vec2(0.0f, 0.0f);
+		std::cout << "drawer generated" << std::endl;
 	}
 	else{
 		player.name = "Guesser";
 		player.position = glm::vec2(-1.2f, 0.0f);
+		std::cout << "Guesser generated" << std::endl;
 	}
 	next_player_number ++;
 
@@ -123,16 +125,16 @@ void Game::new_level(){
 		if (std::find(word_candidate_indeces.begin(), word_candidate_indeces.end(), selected) == word_candidate_indeces.end())
 			word_candidate_indeces.push_back(selected);
 	}
-	std::cout << "word candidates: " << word_list[word_candidate_indeces[0]] << ", " << word_list[word_candidate_indeces[1]] << ", " << word_list[word_candidate_indeces[2]] << std::endl;
+	// std::cout << "word candidates: " << word_list[word_candidate_indeces[0]] << ", " << word_list[word_candidate_indeces[1]] << ", " << word_list[word_candidate_indeces[2]] << std::endl;
 	target_word_index = mt() % 3;
-	std::cout << "target word: " << word_list[word_candidate_indeces[target_word_index]] << std::endl;
+	// std::cout << "target word: " << word_list[word_candidate_indeces[target_word_index]] << std::endl;
 
 	// put the things in game_state
 	game_state.game_info[0] = word_candidate_indeces[0];
 	game_state.game_info[1] = word_candidate_indeces[1];
 	game_state.game_info[2] = word_candidate_indeces[2];
 	game_state.game_info[3] = target_word_index;
-	game_state.game_level = level;
+	game_state.game_score = score;
 }
 
 void Game::remove_player(Player *player) {
@@ -167,15 +169,15 @@ void Game::update(float elapsed) {
 
 		// if the gusser guessed something
 		if (p.name == "Guesser" && p.controls.guess.downs >0){
-			std::cout << "Player guessed: " << word_list[word_candidate_indeces[p.controls.guess.downs]] << std::endl;
+			// std::cout << "Player guessed: " << word_list[word_candidate_indeces[p.controls.guess.downs]] << std::endl;
 			if (p.controls.guess.downs == target_word_index + 1){
 				// guesser guessed correctly
-				std::cout << "Guesser guessed correctly!" << std::endl;
+				// std::cout << "Guesser guessed correctly!" << std::endl;
 				score += 1;
 			}
 			else{
 				// guesser guessed incorrectly
-				std::cout << "Guesser guessed incorrectly!" << std::endl;
+				// std::cout << "Guesser guessed incorrectly!" << std::endl;
 				score -= 1;
 			}
 			new_level();
@@ -362,7 +364,7 @@ void Game::send_game_state_message(Connection *connection_, GameState *connectio
 	auto send_game_state = [&](GameState const &game_state)
 	{
 		connection.send(game_state.game_info);
-		connection.send(game_state.game_level);
+		connection.send(game_state.game_score);
 	};
 
 	// player count:
@@ -414,7 +416,7 @@ bool Game::recv_game_state_message(Connection *connection_)
 	read(&player_count);
 
 	read(&game_state.game_info);
-	read(&game_state.game_level);
+	read(&game_state.game_score);
 
 	if (at != size)
 		throw std::runtime_error("Trailing data in state message.");

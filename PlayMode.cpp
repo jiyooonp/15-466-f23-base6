@@ -170,10 +170,11 @@ void PlayMode::update(float elapsed)
 		// std::to_string(int(game.game_state.game_info.y)) << " " << 
 		// std::to_string(int(game.game_state.game_info.z)) << " " <<
 		// std::to_string(int(game.game_state.game_info.w)) << std::endl;
-		if (level != int(game.game_state.game_info.w))
+		if (score != int(game.game_state.game_score))
 		{
-			level = int(game.game_state.game_info.w);
+			score = int(game.game_state.game_score);
 			player_draws.clear();
+			std::cout << "Your word is: " << word_list[game.game_state.game_info[game.game_state.game_info.w]] << std::endl;
 		}
 	}
 }
@@ -185,6 +186,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
+
 
 	// figure out view transform to center the arena:
 	float aspect = float(drawable_size.x) / float(drawable_size.y);
@@ -226,6 +228,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		for (auto const &player : game.players)
 		{
 			glm::u8vec4 col = glm::u8vec4(255, 0x00, 0x00, 0xff);
+
+			// draw the score to the screen
+			std::string scoreString = "Score: " + std::to_string(int(game.game_state.game_score));
+			draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * 4), scoreString, 0.09f);
+
+
 			if (player.name == "Drawer")
 			{
 				// add all the traits of the player
@@ -239,20 +247,28 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 						col);
 				}
 				draw_text(player.position + glm::vec2(0.0f, -0.1f), "x", 0.09f);
-				draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 1.0f), word_list[game.game_state.game_info[game.game_state.game_info.w]], 0.09f);
 			}
-			else{
+		}
+
+		for (auto const &player : game.players)
+		{
+
+			if (player.name == "Drawer")
+			{
+				draw_text(player.position + glm::vec2(0.0f, -0.1f), "x", 0.09f);
+				draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 1.0f), word_list[game.game_state.game_info[game.game_state.game_info.w]], 0.09f);
+				break;
+			}
+			else if (player.name == "Guesser")
+			{
 				// draw the text for the guesser
 				for (int i = 0; i < 3; i++)
 				{
 					std::string resultString = std::to_string(i + 1) + ". " + game.word_list[game.game_state.game_info[i]];
 					draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * (i + 1)), resultString, 0.09f);
 				}
+				break;
 			}
-
-			// draw the score to the screen
-			std::string scoreString = "Score: " + std::to_string(int(game.game_state.game_level));
-			draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * 4), scoreString, 0.09f);
 		}
 	}
 	GL_ERRORS();

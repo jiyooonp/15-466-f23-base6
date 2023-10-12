@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	);
 
 	//prevent exceedingly tiny windows when resizing:
-	SDL_SetWindowMinimumSize(window,150,100);
+	SDL_SetWindowMinimumSize(window, 1280, 720);
 
 	if (!window) {
 		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;

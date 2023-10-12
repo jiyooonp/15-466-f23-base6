@@ -216,15 +216,13 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 		lines.draw(glm::vec3(Game::ArenaMin[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMin[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 		lines.draw(glm::vec3(Game::ArenaMax[0].x, Game::ArenaMin[0].y, 0.0f), glm::vec3(Game::ArenaMax[0].x, Game::ArenaMax[0].y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
+		// draw the score to the screen
+		std::string scoreString = "Score: " + std::to_string(int(game.game_state.game_score));
+		draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * 4), scoreString, 0.09f);
 
 		for (auto const &player : game.players)
 		{
 			glm::u8vec4 col = glm::u8vec4(255, 0x00, 0x00, 0xff);
-
-			// draw the score to the screen
-			std::string scoreString = "Score: " + std::to_string(int(game.game_state.game_score));
-			draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * 4), scoreString, 0.09f);
-
 
 			if (player.name == "Drawer")
 			{
@@ -238,7 +236,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 						glm::vec3(p + glm::vec2(0.01f, 0.01f), 0.0f),
 						col);
 				}
-				draw_text(player.position + glm::vec2(0.0f, -0.1f), "x", 0.09f);
+				draw_text(player.position + glm::vec2(0.0f, 0.0f), "x", 0.09f);
 			}
 		}
 
@@ -247,8 +245,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 
 			if (player.name == "Drawer")
 			{
-				draw_text(player.position + glm::vec2(0.0f, -0.1f), "x", 0.09f);
 				draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 1.0f), word_list[game.game_state.game_info[game.game_state.game_info.w]], 0.09f);
+
+				draw_text(glm::vec2(Game::ArenaMax[0].x + 0.05f, Game::ArenaMax[0].y - 1.5f), "Press SPACE to draw", 0.09f);
+
+				draw_text(glm::vec2(Game::ArenaMax[0].x + 0.05f, Game::ArenaMax[0].y - 0.5f), "Use arrows to move", 0.09f);
+
 				break;
 			}
 			else if (player.name == "Guesser")
@@ -259,6 +261,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size)
 					std::string resultString = std::to_string(i + 1) + ". " + game.word_list[game.game_state.game_info[i]];
 					draw_text(glm::vec2(Game::ArenaMin[0].x - 0.6f, Game::ArenaMax[0].y - 0.5f * (i + 1)), resultString, 0.09f);
 				}
+				draw_text(glm::vec2(Game::ArenaMax[0].x + 0.05f, Game::ArenaMax[0].y - 1.0f), "Press 1, 2, or 3!", 0.09f);
 				break;
 			}
 		}
